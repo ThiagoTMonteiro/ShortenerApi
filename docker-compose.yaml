@@ -1,0 +1,56 @@
+﻿services:    
+  traefik:
+    image: traefik:v3.4.1
+    container_name: traefik
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - web
+    
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shortener-api
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.shortener.rule=Host(`short.local`)"
+      - "traefik.http.routers.shortener.entrypoints=web"
+      - "traefik.http.services.shortener.loadbalancer.server.port=80"
+    depends_on:
+      - db
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:80
+    networks:
+      - web
+    
+  db:
+    image: postgres:16
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      PORTGRES_DB: shortenerdb
+    ports:
+      - "5431:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - web
+    
+volumes:
+  pgdata:
+    
+networks:
+  web:
+    driver: bridge
