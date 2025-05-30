@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using ShortenerApi;
 using ShortenerApi.Middlewares;
+using ShortenerApi.Repositories;
+using ShortenerApi.Repositories.Interfaces;
 using ShortenerApi.Services;
 using ShortenerApi.Services.Interfaces;
 
@@ -14,6 +16,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<ILinkService, LinkService>();
+builder.Services.AddScoped<IShortCodeGeneratorService, ShortCodeGeneratorService>();
+builder.Services.AddScoped<IAppSettingService, AppSettingService>();
+builder.Services.AddScoped<ILinkRepository, LinkRepository>();
+
 builder.Services.AddControllers();
 
 builder.Services.AddOpenApi();

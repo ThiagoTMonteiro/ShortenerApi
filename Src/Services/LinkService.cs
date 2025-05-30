@@ -1,26 +1,27 @@
 using Microsoft.EntityFrameworkCore;
 using ShortenerApi.Models;
 using ShortenerApi.Models.DTOs;
+using ShortenerApi.Repositories.Interfaces;
 using ShortenerApi.Services.Interfaces;
 
 namespace ShortenerApi.Services;
 
-public class LinkService(AppDbContext context, IConfiguration config) : ILinkService
+public class LinkService(ILinkRepository repository, IAppSettingService settings, IShortCodeGeneratorService shortCodeGeneratorService) : ILinkService
 {
     public async Task<string> CreateShortLinkTask(string originalUrl)
     {
-        var shortCode = Guid.NewGuid().ToString()[..6];
+        var shortCode = shortCodeGeneratorService.GenerateShortCode();
         var entry = new Link{ OriginalUrl = originalUrl, ShortCode = shortCode };
-        context.Links.Add(entry);
-        await context.SaveChangesAsync();
+        await repository.AddAsync(entry);
+        await repository.SaveChangesAsync();
         
-        var domain = config["AppSettings:Domain"] ?? "http://localhost";
+        var domain = settings.GetDomain();
         return $"{domain}/{shortCode}";
     }
 
     public async Task<string?> ResolveShortCodeAsync(string shortCode)
     {
-        var entry = await context.Links.FirstOrDefaultAsync(x => x.ShortCode == shortCode);
+        var entry = await repository.GetByShortCodeAsync(shortCode);
 
         return !string.IsNullOrEmpty(entry?.OriginalUrl) ? entry.OriginalUrl : null;
 
@@ -28,22 +29,22 @@ public class LinkService(AppDbContext context, IConfiguration config) : ILinkSer
 
     public async Task<List<LinkResult>> GetAllLinksAsync()
     {
-        return await context.Links
-            .Select(x => new LinkResult(
-                 ($"{config["AppSettings:Domain"]}/{x.ShortCode}"),
-                x.OriginalUrl,
-                x.Clicks))
-            .ToListAsync();
+        var all = await repository.GetAllAsync();
+        return all.Select(x => new LinkResult(
+                ($"settings.GetDomain()/{x.ShortCode}"),
+                        x.OriginalUrl,
+                        x.Clicks))
+                    .ToList();
     }
 
     public async Task<bool> DeleteShortLinkAsync(string shortCode)
     {
-        var entry = await context.Links.FirstOrDefaultAsync(x => x.ShortCode == shortCode);
+        var entry = await repository.GetByShortCodeAsync(shortCode);
         
         if (entry is null) return false;
         
-        context.Links.Remove(entry);
-        await context.SaveChangesAsync();
+        await repository.DeleteAsync(entry);
+        await repository.SaveChangesAsync();
         return true;
     }
 }
