@@ -29,9 +29,10 @@ public class LinkService(ILinkRepository repository, IAppSettingService settings
 
     public async Task<List<LinkResult>> GetAllLinksAsync()
     {
+        var domain = settings.GetDomain();
         var all = await repository.GetAllAsync();
         return all.Select(x => new LinkResult(
-                ($"settings.GetDomain()/{x.ShortCode}"),
+                ($"{domain}/{x.ShortCode}"),
                         x.OriginalUrl,
                         x.Clicks))
                     .ToList();
