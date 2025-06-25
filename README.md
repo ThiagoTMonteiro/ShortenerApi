@@ -7,7 +7,7 @@ Uma API RESTful para encurtamento de URLs desenvolvida com ASP.NET Core. A qual 
 - ASP.NET Core 9.0  
 - Entity Framework Core  
 - Docker  
-- PostgreSql  
+- PostgreSQL  
 - Traefik (como proxy reverso)  
 
 ## 🚀 Como Executar
