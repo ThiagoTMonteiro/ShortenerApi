@@ -63,7 +63,7 @@ A API oferece os seguintes endpoints:
     [
      {
        "shortUrl": "http://short.local/0382b5",
-       "originalUrl": "https://www.linkedin.com/in/,
+       "originalUrl": "https://www.linkedin.com/in/",
        "clicks": 1
      }
    ]
